@@ -1,0 +1,17 @@
+{
+    "name": "derelict_extras-mantle",
+    "description": "An experimental dynamic binding to the AMD mantle library.",
+    "homepage": "https://github.com/ParticlePeter/DerelictMantle",
+    "license": "Boost",
+    "authors": [
+        "Alexander Overvoorde (Overv)",
+        "Peter Particle (ParticlePeter)"
+    ],
+
+    "targetName": "DerelictMantle",
+    "targetPath": "lib",
+
+    "dependencies": {
+        "derelict-util": ">=1.0.2"
+    }
+}
