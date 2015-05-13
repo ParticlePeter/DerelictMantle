@@ -79,29 +79,29 @@ alias GR_ENUM              = int;
 alias GR_FLAGS             = int;
 alias GR_SAMPLE_MASK       = uint;   // Guess
 
-alias GR_PHYSICAL_GPU               = ulong;
-alias GR_DEVICE                     = ulong;
-alias GR_WSI_WIN_DISPLAY            = ulong;
-alias GR_QUEUE                      = ulong;
-alias GR_IMAGE                      = ulong;
-alias GR_GPU_MEMORY                 = ulong;
-alias GR_CMD_BUFFER                 = ulong;
-alias GR_FENCE                      = ulong;
-alias GR_BASE_OBJECT                = ulong;
-alias GR_VIEWPORT_STATE_OBJECT      = ulong;
-alias GR_COLOR_TARGET_VIEW          = ulong;
-alias GR_DESCRIPTOR_SET             = ulong;
-alias GR_OBJECT                     = ulong;
-alias GR_MSAA_STATE_OBJECT          = ulong;
-alias GR_SAMPLER                    = ulong;
-alias GR_COLOR_BLEND_STATE_OBJECT   = ulong;
-alias GR_DEPTH_STENCIL_STATE_OBJECT = ulong;
-alias GR_RASTER_STATE_OBJECT        = ulong;
-alias GR_SHADER                     = ulong;
-alias GR_PIPELINE                   = ulong;
-alias GR_IMAGE_VIEW                 = ulong;
-alias GR_DEPTH_STENCIL_VIEW         = ulong;
-alias GR_STATE_OBJECT               = ulong;
+alias GR_PHYSICAL_GPU               = uint;
+alias GR_DEVICE                     = uint;
+alias GR_WSI_WIN_DISPLAY            = uint;
+alias GR_QUEUE                      = uint;
+alias GR_IMAGE                      = uint;
+alias GR_GPU_MEMORY                 = uint;
+alias GR_CMD_BUFFER                 = uint;
+alias GR_FENCE                      = uint;
+alias GR_BASE_OBJECT                = uint;
+alias GR_VIEWPORT_STATE_OBJECT      = uint;
+alias GR_COLOR_TARGET_VIEW          = uint;
+alias GR_DESCRIPTOR_SET             = uint;
+alias GR_OBJECT                     = uint;
+alias GR_MSAA_STATE_OBJECT          = uint;
+alias GR_SAMPLER                    = uint;
+alias GR_COLOR_BLEND_STATE_OBJECT   = uint;
+alias GR_DEPTH_STENCIL_STATE_OBJECT = uint;
+alias GR_RASTER_STATE_OBJECT        = uint;
+alias GR_SHADER                     = uint;
+alias GR_PIPELINE                   = uint;
+alias GR_IMAGE_VIEW                 = uint;
+alias GR_DEPTH_STENCIL_VIEW         = uint;
+alias GR_STATE_OBJECT               = uint;
 
 const ulong GR_NULL_HANDLE          = 0;
 
@@ -1005,7 +1005,7 @@ extern( Windows ) @nogc nothrow  {
       const( GR_APPLICATION_INFO ) * pAppInfo,
       const( GR_ALLOC_CALLBACKS ) * pAllocCb,
       GR_UINT * pGpuCount,
-      GR_PHYSICAL_GPU[GR_MAX_PHYSICAL_GPUS] gpus );
+      GR_PHYSICAL_GPU * gpus ); // gpus[GR_MAX_PHYSICAL_GPUS]
 
    alias da_grGetGpuInfo = GR_RESULT function(
       GR_PHYSICAL_GPU gpu,
@@ -1072,7 +1072,7 @@ extern( Windows ) @nogc nothrow  {
    alias da_grCmdClearColorImage = GR_VOID function(
       GR_CMD_BUFFER cmdBuffer,
       GR_IMAGE image,
-      const GR_FLOAT[4] color,
+      const GR_FLOAT * color, //color[4]
       GR_UINT rangeCount,
       const( GR_IMAGE_SUBRESOURCE_RANGE ) * pRanges );
 
@@ -1171,7 +1171,7 @@ extern( Windows ) @nogc nothrow  {
    alias da_grMapMemory = GR_RESULT function(
       GR_GPU_MEMORY mem,
       GR_FLAGS flags,
-      GR_VOID** ppData );
+      GR_VOID ** ppData );
 
    alias da_grUnmapMemory = GR_RESULT function(
       GR_GPU_MEMORY mem );
