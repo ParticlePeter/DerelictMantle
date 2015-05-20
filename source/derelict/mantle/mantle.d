@@ -538,19 +538,19 @@ struct GR_ALLOC_CALLBACKS  {
 }
 
 struct GR_PHYSICAL_GPU_PROPERTIES  {
-   GR_UINT32 apiVersion;
-   GR_UINT32 driverVersion;
-   GR_UINT32 vendorId;
-   GR_UINT32 deviceId;
-   GR_ENUM gpuType;
+   GR_UINT32   apiVersion;
+   GR_UINT32   driverVersion;
+   GR_UINT32   vendorId;
+   GR_UINT32   deviceId;
+   GR_ENUM     gpuType;
    GR_CHAR[ GR_MAX_PHYSICAL_GPU_NAME ] gpuName;
-   GR_UINT maxMemRefsPerSubmission;
+   GR_UINT     maxMemRefsPerSubmission;
    GR_GPU_SIZE reserved;
    GR_GPU_SIZE maxInlineMemoryUpdateSize;
-   GR_UINT maxBoundDescriptorSets;
-   GR_UINT maxThreadGroupSize;
-   GR_UINT64 timestampFrequency;
-   GR_BOOL multiColorTargetClears;
+   GR_UINT     maxBoundDescriptorSets;
+   GR_UINT     maxThreadGroupSize;
+   GR_UINT64   timestampFrequency;
+   GR_BOOL     multiColorTargetClears;
 }
 
 struct GR_PHYSICAL_GPU_PERFORMANCE  {
@@ -678,7 +678,7 @@ struct GR_RECT  {
 struct GR_VIEWPORT_STATE_CREATE_INFO  {
    GR_UINT viewportCount;
    GR_BOOL scissorEnable;
-   GR_VIEWPORT[GR_MAX_VIEWPORTS]   viewports;
+   GR_VIEWPORT[GR_MAX_VIEWPORTS] viewports;
    GR_RECT[GR_MAX_VIEWPORTS] scissors;
 }
 
