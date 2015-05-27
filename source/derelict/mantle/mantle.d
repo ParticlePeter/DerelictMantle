@@ -25,9 +25,9 @@ ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
 */
+
 module derelict.mantle.mantle;
 
-struct Test  {  int a; int b;  }
 
 private {
    import derelict.util.loader;
@@ -36,48 +36,31 @@ private {
    
    static if( Derelict_OS_Windows )
       enum libNames = "mantle32.dll";
-   //else static if( Derelict_OS_Mac )
-      //enum libNames = "libglfw.3.dylib,libglfw3.dylib";
-   //else static if( Derelict_OS_Posix )
-      //enum libNames = "libglfw3.so,libglfw.so.3,/usr/local/lib/libglfw3.so,/usr/local/lib/libglfw.so.3";
    else
       static assert( 0,"Need to implement GLFW libNames for this operating system." );
 }
-//C     #ifndef MANTLE_H
-//C     #define MANTLE_H
-
-//C     #include <Windows.h>
-//import std.c.Windows;
-//C     #include <stdint.h>
-//import std.c.stdint;
-//C     #include <stdbool.h>
-//import std.c.stdbool;
-//C     #include <stddef.h>
-//import std.c.stddef;
 
 
-//extern( Windows )  {
+/* ------------------- */
+/* types and constants */
+/* ------------------- */
 
-/*
-Types and constants
-*/
+alias GR_CHAR                       = char;
+alias GR_INT                        = int;
+alias GR_UINT                       = uint;
+alias GR_UINT8                      = ubyte;
+alias GR_UINT32                     = uint;
+alias GR_UINT64                     = ulong;
+alias GR_FLOAT                      = float;
+alias GR_BOOL                       = uint;
+alias GR_VOID                       = void;
+  
+alias GR_SIZE                       = size_t;
+alias GR_GPU_SIZE                   = ulong;
 
-alias GR_CHAR              = char;
-alias GR_INT               = int;
-alias GR_UINT              = uint;
-alias GR_UINT8             = ubyte;
-alias GR_UINT32            = uint;
-alias GR_UINT64            = ulong;
-alias GR_FLOAT             = float;
-alias GR_BOOL              = uint;
-alias GR_VOID              = void;
-
-alias GR_SIZE              = size_t;
-alias GR_GPU_SIZE          = ulong;
-
-alias GR_ENUM              = int;
-alias GR_FLAGS             = int;
-alias GR_SAMPLE_MASK       = uint;   // Guess
+alias GR_ENUM                       = int;
+alias GR_FLAGS                      = int;
+alias GR_SAMPLE_MASK                = uint;  // Guess
 
 alias GR_PHYSICAL_GPU               = uint;
 alias GR_DEVICE                     = uint;
@@ -107,17 +90,14 @@ const ulong GR_NULL_HANDLE          = 0;
 
 const int GR_MAX_PHYSICAL_GPUS      = 4;
 const int GR_API_VERSION            = 1;
-const int GR_MAX_PHYSICAL_GPU_NAME  = 255; // Guess
-const int GR_MAX_VIEWPORTS          = 16; // Guess
+const int GR_MAX_PHYSICAL_GPU_NAME  = 255;   // Guess
+const int GR_MAX_VIEWPORTS          = 16;    // Guess
 const int GR_MAX_MEMORY_HEAPS       = 8;
-const int GR_MAX_COLOR_TARGETS      = 16; // Guess
+const int GR_MAX_COLOR_TARGETS      = 16;    // Guess
 const int GR_MAX_DESCRIPTOR_SETS    = 2;
 
 const GR_BOOL GR_TRUE  = 1;
 const GR_BOOL GR_FALSE = 0;
-
-//#define GR_STDCALL __stdcall
-//alias GR_STDCALL = extern( C );
 
 alias GR_RESULT                     = uint;
 alias GR_INFO_TYPE                  = uint;
@@ -520,9 +500,9 @@ enum /*GR_MEMORY_STATE*/ {
    GR_MEMORY_STATE_DATA_TRANSFER_DESTINATION = 0x120e,
 }
 
-/*
-Structures
-*/
+/* ---------- */
+/* structures */
+/* ---------- */
 
 struct GR_APPLICATION_INFO  {
    const GR_CHAR * pAppName;
@@ -962,27 +942,22 @@ struct GR_MEMORY_HEAP_PROPERTIES  {
    GR_FLOAT cpuWritePerfRating;
 }
 
-/*
-functions
-*/
-extern( Windows ) nothrow  {
-   /*
-   Callback functions
-   */
+/* ------------------ */
+/* callback functions */
+/* ------------------ */
 
-   //typedef GR_VOID * (GR_STDCALL *GR_ALLOC_FUNCTION)(
+extern( Windows ) nothrow  {
+
    alias GR_VOID * function(
       GR_SIZE size,
       GR_SIZE alignment,
       GR_ENUM allocType
    )   GR_ALLOC_FUNCTION;
 
-   //typedef GR_VOID(GR_STDCALL *GR_FREE_FUNCTION)(
    alias GR_VOID function(
       GR_VOID * pMem
    )   GR_FREE_FUNCTION;
 
-   //typedef GR_VOID(GR_STDCALL *GR_DBG_MSG_CALLBACK_FUNCTION)(
    alias GR_VOID function(
       GR_ENUM msgType,
       GR_ENUM validationLevel,
@@ -994,13 +969,12 @@ extern( Windows ) nothrow  {
    )   GR_DBG_MSG_CALLBACK_FUNCTION;
 }
 
+/* --------------------- */
+/* API function pointers */
+/* --------------------- */
 
 extern( Windows ) @nogc nothrow  {
-   /*
-   API function pointers
-   */
 
-   //R_RESULT(GR_STDCALL *grInitAndEnumerateGpus)(
    alias da_grInitAndEnumerateGpus = GR_RESULT function(
       const( GR_APPLICATION_INFO ) * pAppInfo,
       const( GR_ALLOC_CALLBACKS ) * pAllocCb,
@@ -1328,7 +1302,7 @@ extern( Windows ) @nogc nothrow  {
       GR_UINT firstInstance,
       GR_UINT instanceCount );
 }
-//}
+
 
 __gshared  {
    da_grInitAndEnumerateGpus grInitAndEnumerateGpus;
@@ -1402,12 +1376,7 @@ ShouldThrow missingSymbol( string symbol )  {
 class DerelictMantleLoader : SharedLibLoader {
    public this()  {
       super( libNames );
-
    }
-
-   //public ShouldThrow missingSymbol( string symbol )  {
-   //   return ShouldThrow.Yes;
-   //}
 
    protected override void loadSymbols()  {
       bindFunc( cast( void ** ) & grInitAndEnumerateGpus , "grInitAndEnumerateGpus" );
