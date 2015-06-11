@@ -35,7 +35,7 @@ private {
    import derelict.util.exception;
    
    static if( Derelict_OS_Windows )
-      enum libNames = "mantle32.dll";
+      enum libNames = "mantle32.dll,mantleaxl32.dll";
    else
       static assert( 0,"Need to implement GLFW libNames for this operating system." );
 }
@@ -45,6 +45,7 @@ private {
 /* types and constants */
 /* ------------------- */
 
+alias GR_BYTE                       = byte;
 alias GR_CHAR                       = char;
 alias GR_INT                        = int;
 alias GR_INT32                      = int;
@@ -91,9 +92,6 @@ alias GR_SAMPLER                    = uint;
 alias GR_SHADER                     = uint;
 alias GR_STATE_OBJECT               = uint;
 alias GR_VIEWPORT_STATE_OBJECT      = uint;
-
-/* Object Handle Extensions */
-alias GR_WSI_WIN_DISPLAY            = uint;
 
 const ulong GR_NULL_HANDLE          = 0;
 
@@ -153,10 +151,6 @@ alias GR_DBG_MSG_FILTER                   = uint;
 alias GR_DBG_MSG_TYPE                     = uint;
 alias GR_DBG_OBJECT_TYPE                  = uint;
 
-/* WSI Extension Enumerations */
-alias GR_WSI_WIN_IMAGE_STATE              = uint;
-alias GR_WSI_WIN_PRESENT_MODE             = uint;
-
 /* Flags */
 alias GR_CMD_BUFFER_BUILD_FLAGS           = uint;
 alias GR_DEPTH_STENCIL_VIEW_CREATE_FLAGS  = uint;
@@ -173,10 +167,6 @@ alias GR_PIPELINE_CREATE_FLAGS            = uint;
 alias GR_QUERY_CONTROL_FLAGS              = uint;
 alias GR_SEMAPHORE_CREATE_FLAGS           = uint;
 alias GR_SHADER_CREATE_FLAGS              = uint;
-
-/* WSI Extension Flags */
-alias GR_WSI_WIN_IMAGE_CREATE_FLAGS       = uint;
-alias GR_WSI_WIN_PRESENT_FLAGS            = uint;
 
 
 
@@ -1962,27 +1952,6 @@ extern( Windows ) @nogc nothrow  {
 
    alias da_grCmdDbgMarkerEnd = GR_RESULT function(
       GR_CMD_BUFFER   cmdBuffer );
-
-   /* WSI Extension Functions */
-   alias da_grWsiWinGetDisplays = GR_RESULT function(
-      GR_DEVICE device,
-      GR_UINT * pDisplayCount,
-      GR_WSI_WIN_DISPLAY * pDisplayList );
-
-   alias da_grWsiWinGetDisplayModeList = GR_RESULT function(
-      GR_WSI_WIN_DISPLAY display,
-      GR_UINT * pDisplayModeCount,
-      GR_WSI_WIN_DISPLAY_MODE * pDisplayModeList );
-
-   alias da_grWsiWinCreatePresentableImage = GR_RESULT function(
-      GR_DEVICE device,
-      const( GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO ) * pCreateInfo,
-      GR_IMAGE * pImage,
-      GR_GPU_MEMORY * pMem );
-
-   alias da_grWsiWinQueuePresent = GR_RESULT function(
-      GR_QUEUE queue,
-      const( GR_WSI_WIN_PRESENT_INFO ) * pPresentInfo );
 }
 
 
@@ -2090,6 +2059,7 @@ __gshared  {
    da_grCmdInitAtomicCounters          grCmdInitAtomicCounters;
    da_grCmdLoadAtomicCounters          grCmdLoadAtomicCounters;
    da_grCmdSaveAtomicCounters          grCmdSaveAtomicCounters;
+   
    da_grDbgSetValidationLevel          grDbgSetValidationLevel;
    da_grDbgRegisterMsgCallback         grDbgRegisterMsgCallback;
    da_grDbgUnregisterMsgCallback       grDbgUnregisterMsgCallback;
@@ -2099,10 +2069,6 @@ __gshared  {
    da_grDbgSetDeviceOption             grDbgSetDeviceOption;
    da_grCmdDbgMarkerBegin              grCmdDbgMarkerBegin;
    da_grCmdDbgMarkerEnd                grCmdDbgMarkerEnd;
-   da_grWsiWinGetDisplays              grWsiWinGetDisplays;
-   da_grWsiWinGetDisplayModeList       grWsiWinGetDisplayModeList;
-   da_grWsiWinCreatePresentableImage   grWsiWinCreatePresentableImage;
-   da_grWsiWinQueuePresent             grWsiWinQueuePresent;
 }
 
 ShouldThrow missingSymbol( string symbol )  {
@@ -2218,6 +2184,8 @@ class DerelictMantleLoader : SharedLibLoader {
       bindFunc( cast( void ** ) & grCmdInitAtomicCounters,        "grCmdInitAtomicCounters" );
       bindFunc( cast( void ** ) & grCmdLoadAtomicCounters,        "grCmdLoadAtomicCounters" );
       bindFunc( cast( void ** ) & grCmdSaveAtomicCounters,        "grCmdSaveAtomicCounters" );
+
+
       bindFunc( cast( void ** ) & grDbgSetValidationLevel,        "grDbgSetValidationLevel" );
       bindFunc( cast( void ** ) & grDbgRegisterMsgCallback,       "grDbgRegisterMsgCallback" );
       bindFunc( cast( void ** ) & grDbgUnregisterMsgCallback,     "grDbgUnregisterMsgCallback" );
@@ -2229,10 +2197,36 @@ class DerelictMantleLoader : SharedLibLoader {
       bindFunc( cast( void ** ) & grCmdDbgMarkerEnd,              "grCmdDbgMarkerEnd" );
 
       /* WSI Extension Functions */
-      bindFunc( cast( void ** ) & grWsiWinGetDisplays,            "grWsiWinGetDisplays" );
-      bindFunc( cast( void ** ) & grWsiWinGetDisplayModeList,     "grWsiWinGetDisplayModeList" );
-      bindFunc( cast( void ** ) & grWsiWinCreatePresentableImage, "grWsiWinCreatePresentableImage" );
-      bindFunc( cast( void ** ) & grWsiWinQueuePresent,           "grWsiWinQueuePresent" );
+      bindFunc( cast( void ** ) & grWsiWinGetDisplays,                 "grWsiWinGetDisplays" );
+      bindFunc( cast( void ** ) & grWsiWinGetDisplayModeList,          "grWsiWinGetDisplayModeList" );
+      bindFunc( cast( void ** ) & grWsiWinTakeFullscreenOwnership,     "grWsiWinTakeFullscreenOwnership" );
+      bindFunc( cast( void ** ) & grWsiWinReleaseFullscreenOwnership,  "grWsiWinReleaseFullscreenOwnership" );
+      bindFunc( cast( void ** ) & grWsiWinSetGammaRamp,                "grWsiWinSetGammaRamp" );
+      bindFunc( cast( void ** ) & grWsiWinWaitForVerticalBlank,        "grWsiWinWaitForVerticalBlank" );
+      bindFunc( cast( void ** ) & grWsiWinGetScanLine,                 "grWsiWinGetScanLine" );
+      bindFunc( cast( void ** ) & grWsiWinCreatePresentableImage,      "grWsiWinCreatePresentableImage" );
+      bindFunc( cast( void ** ) & grWsiWinQueuePresent,                "grWsiWinQueuePresent" );
+      bindFunc( cast( void ** ) & grWsiWinSetMaxQueuedFrames,          "grWsiWinSetMaxQueuedFrames" );
+
+      /* AXL Extension Functions and Versioning */
+      bindFunc( cast( void ** ) & grGetExtensionLibraryVersion,        "grGetExtensionLibraryVersion" );
+      bindFunc( cast( void ** ) & grCreateBorderColorPalette,          "grCreateBorderColorPalette" );
+      bindFunc( cast( void ** ) & grUpdateBorderColorPalette,          "grUpdateBorderColorPalette" );
+      bindFunc( cast( void ** ) & grCmdBindBorderColorPalette,         "grCmdBindBorderColorPalette" );
+      bindFunc( cast( void ** ) & grCreateAdvancedMsaaState,           "grCreateAdvancedMsaaState" );
+      bindFunc( cast( void ** ) & grCreateFmaskImageView,              "grCreateFmaskImageView" );
+      bindFunc( cast( void ** ) & grCmdCopyOcclusionData,              "grCmdCopyOcclusionData" );
+      bindFunc( cast( void ** ) & grCmdSetOcclusionPredication,        "grCmdSetOcclusionPredication" );
+      bindFunc( cast( void ** ) & grCmdResetOcclusionPredication,      "grCmdResetOcclusionPredication" );
+      bindFunc( cast( void ** ) & grCmdSetMemoryPredication,           "grCmdSetMemoryPredication" );
+      bindFunc( cast( void ** ) & grCmdResetMemoryPredication,         "grCmdResetMemoryPredication" );
+      bindFunc( cast( void ** ) & grCmdIf,                             "grCmdIf" );
+      bindFunc( cast( void ** ) & grCmdElse,                           "grCmdElse" );
+      bindFunc( cast( void ** ) & grCmdEndIf,                          "grCmdEndIf" );
+      bindFunc( cast( void ** ) & grCmdWhile,                          "grCmdWhile" );
+      bindFunc( cast( void ** ) & grCmdEndWhile,                       "grCmdEndWhile" );
+      bindFunc( cast( void ** ) & grQueueDelay,                        "grQueueDelay" );
+      bindFunc( cast( void ** ) & grCalibrateGpuTimestamp,             "grCalibrateGpuTimestamp" );
    }
 }
 
@@ -2243,23 +2237,87 @@ shared static this()  {
     DerelictMantle.missingSymbolCallback( & missingSymbol );
 }
 
-/* ---------- */
-/* Extensions */
-/* ---------- */
+/* --------------------------- */
+/* AMD Extension Library (AXL) */
+/* --------------------------- */
 
-enum /*GR_EXT_QUEUE_TYPE*/  {
-   GR_EXT_QUEUE_DMA   = 0x00300200,
-   GR_EXT_QUEUE_TIMER = 0x00300201,
+/* ------------------ */
+/* Library Versioning */
+/* ------------------ */
+
+/* Library Versioning Enumerations */
+enum /*GR_EXT_INFO_TYPE*/  {
+   GR_EXT_INFO_TYPE_PHYSICAL_GPU_SUPPORTED_AXL_VERSION = 0x00306100,
 }
 
+/* Library Versioning Structures */
+// AMD extension library interface encoded using the GR_MAKE_VERSION ( Unknown ) macro
+struct GR_PHYSICAL_GPU_SUPPORTED_AXL_VERSION  {
+    GR_UINT32 minVersion;
+    GR_UINT32 maxVersion;
+}
+
+/* Library Versioning Functions */
+extern( Windows ) @nogc nothrow  {
+   alias da_grGetExtensionLibraryVersion = GR_UINT32 function();
+}
+
+__gshared  {
+   da_grGetExtensionLibraryVersion grGetExtensionLibraryVersion;
+}
+
+
+
+/* --------------------- */
+/* Windows WSI Extension */
+/* --------------------- */
+
+/* WSI Extension Object Handles */
+alias GR_WSI_WIN_DISPLAY                     = uint;
+
+/* WSI Extension Constants */
+const int GR_MAX_DEVICE_NAME_LEN             = 255;   // Guess
+const int GR_MAX_GAMMA_RAMP_CONTROL_POINTS   = 255;   // Guess
+
+/* WSI Extension Enumerations */
+alias GR_WSI_WIN_IMAGE_STATE                 = uint;
+alias GR_WSI_WIN_PRESENT_MODE                = uint;
+
+/* WSI Extension Flags */
+alias GR_WSI_WIN_IMAGE_CREATE_FLAGS          = uint;
+alias GR_WSI_WIN_PRESENT_FLAGS               = uint;
+
+/* WSI Extension Enumerations */
 enum /*GR_WSI_WIN_IMAGE_STATE*/  {
    GR_WSI_WIN_IMAGE_STATE_PRESENT_WINDOWED   = 0x00200000,
    GR_WSI_WIN_IMAGE_STATE_PRESENT_FULLSCREEN = 0x00200001,
 }
 
+enum /*GR_WSI_WIN_INFO_TYPE*/  {
+   GR_WSI_WIN_INFO_TYPE_QUEUE_PROPERTIES             = 0x00206800,
+   GR_WSI_WIN_INFO_TYPE_DISPLAY_PROPERTIES           = 0x00206801,
+   GR_WSI_WIN_INFO_TYPE_GAMMA_RAMP_CAPABILITIES      = 0x00206802,
+   GR_WSI_WIN_INFO_TYPE_DISPLAY_FREESYNC_SUPPORT     = 0x00206803,
+   GR_WSI_WIN_INFO_TYPE_PRESENTABLE_IMAGE_PROPERTIES = 0x00206804,
+   GR_WSI_WIN_INFO_TYPE_EXTENDED_DISPLAY_PROPERTIES  = 0x00206805,
+}
+
 enum /*GR_WSI_WIN_PRESENT_MODE*/  {
    GR_WSI_WIN_PRESENT_MODE_WINDOWED   = 0x00200200,
    GR_WSI_WIN_PRESENT_MODE_FULLSCREEN = 0x00200201,
+}
+
+enum /*GR_WSI_WIN_ROTATION_ANGLE*/  {
+   GR_WSI_WIN_ROTATION_ANGLE_0   = 0x00200100,
+   GR_WSI_WIN_ROTATION_ANGLE_90  = 0x00200101,
+   GR_WSI_WIN_ROTATION_ANGLE_180 = 0x00200102,
+   GR_WSI_WIN_ROTATION_ANGLE_270 = 0x00200103,
+}
+
+/* WSI Extension Flags */
+enum /*GR_WSI_WIN_EXTENDED_DISPLAY_FLAGS*/  {
+   GR_WSI_WIN_WINDOWED_VBLANK_WAIT  = 0x00000001,
+   GR_WSI_WIN_WINDOWED_GET_SCANLINE = 0x00000002,
 }
 
 enum /*GR_WSI_WIN_IMAGE_CREATE_FLAGS*/  {
@@ -2272,27 +2330,464 @@ enum /*GR_WSI_WIN_PRESENT_FLAGS*/  {
    GR_WSI_WIN_PRESENT_FULLSCREEN_STEREO    = 0x00000002,
 }
 
-struct GR_WSI_WIN_DISPLAY_MODE  {
-   GR_EXTENT2D extent;
-   GR_FORMAT format;
-   GR_UINT refreshRate;
-   GR_BOOL stereo;
-   GR_BOOL crossDisplayPresent;
+enum /*GR_WSI_WIN_PRESENT_SUPPORT_FLAGS*/  {
+   GR_WSI_WIN_FULLSCREEN_PRESENT_SUPPORTED = 0x00000001,
+   GR_WSI_WIN_WINDOWED_PRESENT_SUPPORTED   = 0x00000002,
 }
 
-struct GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO  {
-   GR_FORMAT format;
-   GR_FLAGS usage;
+/* WSI Extension Data Structures */
+struct GR_RGB_FLOAT  {
+   GR_FLOAT red;
+   GR_FLOAT green;
+   GR_FLOAT blue;
+}
+
+struct GR_WSI_WIN_DISPLAY_MODE  {
    GR_EXTENT2D extent;
-   GR_WSI_WIN_DISPLAY display;
-   GR_FLAGS flags;
+   GR_FORMAT   format;
+   GR_UINT     refreshRate;
+   GR_BOOL     stereo;
+   GR_BOOL     crossDisplayPresent;
+}
+
+alias void * HMONITOR;
+struct GR_WSI_WIN_DISPLAY_PROPERTIES  {
+   HMONITOR hMonitor;
+   GR_CHAR[ GR_MAX_DEVICE_NAME_LEN ]  displayName;
+   GR_RECT  desktopCoordinates;
+   GR_ENUM  rotation;
+}
+
+struct GR_WSI_WIN_EXTENDED_DISPLAY_PROPERTIES  {
+   GR_FLAGS extendedProperties;
+}
+
+struct GR_WSI_WIN_GAMMA_RAMP  {
+   GR_RGB_FLOAT  scale;
+   GR_RGB_FLOAT  offset;
+   GR_RGB_FLOAT[ GR_MAX_GAMMA_RAMP_CONTROL_POINTS ] gammaCurve;
+}
+
+struct GR_WSI_WIN_GAMMA_RAMP_CAPABILITIES  {
+   GR_BOOL   supportsScaleAndOffset;
+   GR_FLOAT  minConvertedValue;
+   GR_FLOAT  maxConvertedValue;
+   GR_UINT   controlPointCount;
+   GR_FLOAT[ GR_MAX_GAMMA_RAMP_CONTROL_POINTS ] controlPointPositions;
 }
 
 alias void * HWND;
 struct GR_WSI_WIN_PRESENT_INFO  {
-   HWND hWndDest;
+   HWND     hWndDest;
    GR_IMAGE srcImage;
-   GR_ENUM presentMode;
-   GR_UINT presentInterval;
+   GR_ENUM  presentMode;
+   GR_UINT  presentInterval;
    GR_FLAGS flags;
+}
+
+struct GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO  {
+   GR_FORMAT          format;
+   GR_FLAGS           usage;
+   GR_EXTENT2D        extent;
+   GR_WSI_WIN_DISPLAY display;
+   GR_FLAGS           flags;
+}
+
+struct _GR_WSI_WIN_PRESENTABLE_IMAGE_PROPERTIES  {
+   GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO createInfo;
+   GR_GPU_MEMORY                            mem;
+}
+
+struct GR_WSI_WIN_QUEUE_PROPERTIES  {
+   GR_FLAGS presentSupport;
+}
+
+
+/* WSI Extension Errors and Return Codes */
+// GR_WSI_WIN_PRESENT_OCCLUDED
+// GR_WSI_WIN_ERROR_FULLSCREEN_UNAVAILABLE
+// GR_WSI_WIN_ERROR_DISPLAY_REMOVED
+// GR_WSI_WIN_ERROR_INCOMPATIBLE_DISPLAY_MODE
+// GR_WSI_WIN_ERROR_MULTI_DEVICE_PRESENT_FAILED
+// GR_WSI_WIN_ERROR_WINDOWED_PRESENT_UNAVAILABLE
+// GR_WSI_WIN_ERROR_INVALID_RESOLUTION
+
+/* --------- */
+/* Functions */
+/* --------- */
+
+extern( Windows ) @nogc nothrow  {
+
+   /* WSI Extension Functions */
+   alias da_grWsiWinGetDisplays = GR_RESULT function(
+      GR_DEVICE device,
+      GR_UINT * pDisplayCount,
+      GR_WSI_WIN_DISPLAY * pDisplayList );
+
+   alias da_grWsiWinGetDisplayModeList = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display,
+      GR_UINT * pDisplayModeCount,
+      GR_WSI_WIN_DISPLAY_MODE * pDisplayModeList );
+
+   alias da_grWsiWinTakeFullscreenOwnership = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display,
+      GR_IMAGE image );
+
+   alias da_grWsiWinReleaseFullscreenOwnership = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display );
+
+   alias da_grWsiWinSetGammaRamp = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display,
+      const( GR_WSI_WIN_GAMMA_RAMP ) * pGammaRamp );
+
+   alias da_grWsiWinWaitForVerticalBlank = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display );
+
+   alias da_grWsiWinGetScanLine = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display,
+      GR_INT * pScanLine );
+
+   alias da_grWsiWinCreatePresentableImage = GR_RESULT function(
+      GR_DEVICE device,
+      const( GR_WSI_WIN_PRESENTABLE_IMAGE_CREATE_INFO ) * pCreateInfo,
+      GR_IMAGE * pImage,
+      GR_GPU_MEMORY * pMem );
+
+   alias da_grWsiWinQueuePresent = GR_RESULT function(
+      GR_QUEUE queue,
+      const( GR_WSI_WIN_PRESENT_INFO ) * pPresentInfo );
+
+   alias da_grWsiWinSetMaxQueuedFrames = GR_RESULT function(
+      GR_WSI_WIN_DISPLAY display,
+      GR_UINT maxFrames );
+}
+
+
+__gshared  {
+   da_grWsiWinGetDisplays                 grWsiWinGetDisplays;
+   da_grWsiWinGetDisplayModeList          grWsiWinGetDisplayModeList;
+   da_grWsiWinTakeFullscreenOwnership     grWsiWinTakeFullscreenOwnership;
+   da_grWsiWinReleaseFullscreenOwnership  grWsiWinReleaseFullscreenOwnership;
+   da_grWsiWinSetGammaRamp                grWsiWinSetGammaRamp;
+   da_grWsiWinWaitForVerticalBlank        grWsiWinWaitForVerticalBlank;
+   da_grWsiWinGetScanLine                 grWsiWinGetScanLine;
+   da_grWsiWinCreatePresentableImage      grWsiWinCreatePresentableImage;
+   da_grWsiWinQueuePresent                grWsiWinQueuePresent;
+   da_grWsiWinSetMaxQueuedFrames          grWsiWinSetMaxQueuedFrames;
+}
+
+
+
+
+/* ------------------------------ */
+/* Border Color Palette Extension */
+/* ------------------------------ */
+
+/* Border Color Palette Extension  Object Handles */
+alias GR_BORDER_COLOR_PALETTE       = uint;
+
+/* Border Color Palette Extension Enumerations */
+enum /*GR_EXT_BORDER_COLOR_TYPE*/  {
+   GR_EXT_BORDER_COLOR_TYPE_PALETTE_ENTRY_0 = 0x0030a000,
+}
+
+enum /*GR_EXT_INFO_TYPE*/  {
+   GR_EXT_INFO_TYPE_QUEUE_BORDER_COLOR_PALETTE_PROPERTIES = 0x00306800,
+}
+
+/* Border Color Palette Extension Data Structures */
+struct GR_BORDER_COLOR_PALETTE_PROPERTIES  {
+   GR_UINT maxPaletteSize;
+}
+
+struct GR_BORDER_COLOR_PALETTE_CREATE_INFO  {
+   GR_UINT paletteSize;
+}
+
+/* Border Color Palette Extension Functions */
+extern( Windows ) @nogc nothrow  {
+
+   alias da_grCreateBorderColorPalette = GR_RESULT function(
+      GR_DEVICE device,
+      const( GR_BORDER_COLOR_PALETTE_CREATE_INFO ) * pCreateInfo,
+      GR_BORDER_COLOR_PALETTE * pPalette );
+
+   alias da_grUpdateBorderColorPalette = GR_RESULT function(
+      GR_BORDER_COLOR_PALETTE palette,
+      GR_UINT firstEntry,
+      GR_UINT entryCount,
+      const( GR_FLOAT ) * pEntries);
+
+   alias da_grCmdBindBorderColorPalette = GR_VOID function(
+      GR_CMD_BUFFER cmdBuffer,
+      GR_ENUM pipelineBindPoint,
+      GR_BORDER_COLOR_PALETTE palette );
+}
+
+__gshared  {
+   da_grCreateBorderColorPalette    grCreateBorderColorPalette;
+   da_grUpdateBorderColorPalette    grUpdateBorderColorPalette;
+   da_grCmdBindBorderColorPalette   grCmdBindBorderColorPalette;
+}
+
+
+
+/* -------------------------------- */
+/* Advanced Multisampling Extension */
+/* -------------------------------- */
+
+/* Advanced Multisampling Extension Constants */
+const int GR_MAX_MSAA_RASTERIZER_SAMPLES             = 16;   // Guess
+
+/* Advanced Multisampling Extension Enumerations */
+enum /*GR_EXT_IMAGE_STATE*/  {
+   GR_EXT_IMAGE_STATE_GRAPHICS_SHADER_FMASK_LOOKUP = 0x00300100,
+   GR_EXT_IMAGE_STATE_COMPUTE_SHADER_FMASK_LOOKUP  = 0x00300101,
+} 
+
+/* Advanced Multisampling Extension Data Structures */
+struct GR_ADVANCED_MSAA_STATE_CREATE_INFO  {
+   GR_UINT                     coverageSamples;
+   GR_UINT                     pixelShaderSamples;
+   GR_UINT                     depthStencilSamples;
+   GR_UINT                     colorTargetSamples;
+   GR_SAMPLE_MASK              sampleMask;
+   GR_UINT                     sampleClusters;
+   GR_UINT                     alphaToCoverageSamples;
+   GR_BOOL                     disableAlphaToCoverageDither;
+   GR_BOOL                     customSamplePatternEnable;
+   GR_MSAA_QUAD_SAMPLE_PATTERN customSamplePattern;
+}
+
+struct GR_FMASK_IMAGE_VIEW_CREATE_INFO  {
+   GR_IMAGE image;
+   GR_UINT  baseArraySlice;
+   GR_UINT  arraySize;
+}
+
+struct GR_MSAA_QUAD_SAMPLE_PATTERN  {
+   GR_OFFSET2D[GR_MAX_MSAA_RASTERIZER_SAMPLES] topLeft;
+   GR_OFFSET2D[GR_MAX_MSAA_RASTERIZER_SAMPLES] topRight;
+   GR_OFFSET2D[GR_MAX_MSAA_RASTERIZER_SAMPLES] bottomLeft;
+   GR_OFFSET2D[GR_MAX_MSAA_RASTERIZER_SAMPLES] bottomRight;
+} 
+
+/* Advanced Multisampling Extension Functions */
+extern( Windows ) @nogc nothrow  {
+
+   alias da_grCreateAdvancedMsaaState = GR_RESULT function(
+      GR_DEVICE device,
+      const( GR_ADVANCED_MSAA_STATE_CREATE_INFO ) * pCreateInfo,
+      GR_MSAA_STATE_OBJECT * pState );
+
+   alias da_grCreateFmaskImageView = GR_RESULT function(
+      GR_DEVICE device,
+      const( GR_FMASK_IMAGE_VIEW_CREATE_INFO ) * pCreateInfo,
+      GR_IMAGE_VIEW * pView );
+}
+
+__gshared  {
+   da_grCreateAdvancedMsaaState  grCreateAdvancedMsaaState;
+   da_grCreateFmaskImageView     grCreateFmaskImageView;
+}
+
+
+
+/* ----------------------------------- */
+/* Copy Occlusion Query Data Extension */
+/* ----------------------------------- */
+
+/* Copy Occlusion Query Data Extension Enumerations */
+enum /*GR_EXT_MEMORY_STATE*/  {
+    GR_EXT_MEMORY_STATE_COPY_OCCLUSION_DATA = 0x00300000,
+}
+
+/* Copy Occlusion Query Data Extension Functions */
+extern( Windows ) @nogc nothrow  {
+
+   // GR_RESULT as per API Reference seems ulikely, as all other grCmd functions return GR_VOID
+   alias da_grCmdCopyOcclusionData = GR_VOID function(   // GR_RESULT as per API Reference seems ulikely
+      GR_CMD_BUFFER  cmdBuffer,
+      GR_QUERY_POOL  queryPool,
+      GR_UINT        startQuery,
+      GR_UINT        queryCount,
+      GR_GPU_MEMORY  destMem,
+      GR_GPU_SIZE    destOffset,
+      GR_BOOL        accumulateData );
+}
+
+__gshared  {
+   da_grCmdCopyOcclusionData grCmdCopyOcclusionData;
+}
+
+
+
+/* ------------------------------------- */
+/* Command Buffer Control Flow Extension */
+/* ------------------------------------- */
+
+/* Command Buffer Control Flow Extension Enumerations */
+enum /*GR_EXT_INFO_TYPE*/  {
+   GR_EXT_INFO_TYPE_QUEUE_CONTROL_FLOW_PROPERTIES = 0x00306801,
+}
+
+enum /*GR_EXT_MEMORY_STATE*/  {
+   GR_EXT_MEMORY_STATE_CMD_CONTROL = 0x00300001,
+}
+
+enum /*GR_EXT_OCCLUSION_CONDITION*/  {
+   GR_EXT_OCCLUSION_CONDITION_VISIBLE     = 0x00300300,
+   GR_EXT_OCCLUSION_CONDITION_INVISIBLE   = 0x00300301,
+}
+
+/* Command Buffer Control Flow Extension Flags */
+enum /*GR_EXT_CONTROL_FLOW_FEATURE_FLAGS*/  {
+   GR_EXT_CONTROL_FLOW_OCCLUSION_PREDICATION = 0x00000001,
+   GR_EXT_CONTROL_FLOW_MEMORY_PREDICATION    = 0x00000002,
+   GR_EXT_CONTROL_FLOW_CONDITIONAL_EXECUTION = 0x00000004,
+   GR_EXT_CONTROL_FLOW_LOOP_EXECUTION        = 0x00000008,
+}
+
+/* Command Buffer Control Flow Extension Data Structures */
+struct GR_QUEUE_CONTROL_FLOW_PROPERTIES  {
+   GR_UINT  maxNestingLimit;
+   GR_FLAGS controlFlowOperations;
+} 
+
+/* Command Buffer Control Flow Extension Functions */
+extern( Windows ) @nogc nothrow  {
+
+   alias da_grCmdSetOcclusionPredication = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer,
+      GR_QUERY_POOL  queryPool,
+      GR_UINT        slot,
+      GR_ENUM        condition,
+      GR_BOOL        waitResults,
+      GR_BOOL        accumulateData );
+
+   alias da_grCmdResetOcclusionPredication = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer );
+
+   alias da_grCmdSetMemoryPredication = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer,
+      GR_GPU_MEMORY  mem,
+      GR_GPU_SIZE    offset );
+
+   alias da_grCmdResetMemoryPredication = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer );
+
+   alias da_grCmdIf = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer,
+      GR_GPU_MEMORY  srcMem,
+      GR_GPU_SIZE    srcOffset,
+      GR_UINT64      data,
+      GR_UINT64      mask,
+      GR_ENUM        func );
+
+   alias da_grCmdElse = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer );
+
+   alias da_grCmdEndIf = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer );
+
+   alias da_grCmdWhile = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer,
+      GR_GPU_MEMORY  srcMem,
+      GR_GPU_SIZE    srcOffset,
+      GR_UINT64      data,
+      GR_UINT64      mask,
+      GR_ENUM        func );
+
+   alias da_grCmdEndWhile = GR_VOID function(
+      GR_CMD_BUFFER  cmdBuffer );
+}
+
+__gshared  {
+   da_grCmdSetOcclusionPredication     grCmdSetOcclusionPredication;
+   da_grCmdResetOcclusionPredication   grCmdResetOcclusionPredication;
+   da_grCmdSetMemoryPredication        grCmdSetMemoryPredication;
+   da_grCmdResetMemoryPredication      grCmdResetMemoryPredication;
+   da_grCmdIf                          grCmdIf;
+   da_grCmdElse                        grCmdElse;
+   da_grCmdEndIf                       grCmdEndIf;
+   da_grCmdWhile                       grCmdWhile;
+   da_grCmdEndWhile                    grCmdEndWhile;
+}
+
+
+
+/* ------------------- */
+/* DMA Queue Extension */
+/* ------------------- */
+
+/* DMA Queue Extension Enumerations */
+enum /*GR_EXT_IMAGE_STATE*/  {
+   GR_EXT_IMAGE_STATE_DATA_TRANSFER_DMA_QUEUE      = 0x00300102,
+}
+
+enum /*GR_EXT_QUEUE_TYPE*/  {
+   GR_EXT_QUEUE_DMA   = 0x00300200,
+} 
+
+
+
+/* ------------------- */
+/* Timer Queue Extension */
+/* ------------------- */
+
+/* Timer Queue Extension Enumerations */
+enum /*GR_EXT_QUEUE_TYPE*/  {
+    GR_EXT_QUEUE_TIMER = 0x00300201,
+}
+
+/* Timer Queue Extension Functions */
+extern( Windows ) @nogc nothrow  {
+   alias da_grQueueDelay = GR_RESULT function(
+      GR_QUEUE queue,
+      GR_FLOAT delay );
+}
+
+__gshared  {
+   da_grQueueDelay grQueueDelay;
+}
+
+
+
+/* ------------------- */
+/* GPU Timestamp Calibration Extension */
+/* ------------------- */
+
+/* GPU Timestamp Calibration Extension Structures */
+struct GR_GPU_TIMESTAMP_CALIBRATION  {
+    GR_UINT64 gpuTimestamp;
+    union  {
+        GR_UINT64    cpuWinPerfCounter;
+        GR_BYTE[16]  _padding;
+    }
+}
+
+/* GPU Timestamp Calibration Extension Functions */
+extern( Windows ) @nogc nothrow  {
+   alias da_grCalibrateGpuTimestamp = GR_RESULT function(
+      GR_DEVICE device,
+      GR_GPU_TIMESTAMP_CALIBRATION * pCalibrationData );
+}
+
+__gshared  {
+   da_grCalibrateGpuTimestamp grCalibrateGpuTimestamp;
+}
+
+
+
+/* ------------------------------- */
+/* Recource State Access Extension */
+/* ------------------------------- */
+
+/* Recource State Access Extension Enumerations */
+enum /*GR_EXT_ACCESS_CLIENT*/  {
+   GR_EXT_ACCESS_DEFAULT         = 0x00000000,
+   GR_EXT_ACCESS_CPU             = 0x01000000,
+   GR_EXT_ACCESS_UNIVERSAL_QUEUE = 0x02000000,
+   GR_EXT_ACCESS_COMPUTE_QUEUE   = 0x04000000,
+   GR_EXT_ACCESS_DMA_QUEUE       = 0x08000000,
 }
