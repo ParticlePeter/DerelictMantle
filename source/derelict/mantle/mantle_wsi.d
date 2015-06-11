@@ -93,7 +93,7 @@ enum /*GR_WSI_WIN_PRESENT_SUPPORT_FLAGS*/  {
    GR_WSI_WIN_WINDOWED_PRESENT_SUPPORTED   = 0x00000002,
 }
 
-/* WSI Extension Structures */
+/* WSI Extension Data Structures */
 struct GR_RGB_FLOAT  {
    GR_FLOAT red;
    GR_FLOAT green;
