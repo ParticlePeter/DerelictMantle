@@ -93,7 +93,7 @@ alias GR_SHADER                     = uint;
 alias GR_STATE_OBJECT               = uint;
 alias GR_VIEWPORT_STATE_OBJECT      = uint;
 
-const ulong GR_NULL_HANDLE          = 0;
+const uint GR_NULL_HANDLE           = 0;
 
 const int GR_MAX_PHYSICAL_GPUS      = 4;
 const int GR_API_VERSION            = 1;
@@ -2276,7 +2276,7 @@ __gshared  {
 alias GR_WSI_WIN_DISPLAY                     = uint;
 
 /* WSI Extension Constants */
-const int GR_MAX_DEVICE_NAME_LEN             = 255;   // Guess
+const int GR_MAX_DEVICE_NAME_LEN             = 32;    // Guess
 const int GR_MAX_GAMMA_RAMP_CONTROL_POINTS   = 255;   // Guess
 
 /* WSI Extension Enumerations */
