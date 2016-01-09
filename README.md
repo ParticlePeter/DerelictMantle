@@ -2,6 +2,8 @@ DerelictMantle
 ================
 *Unofficial Derelict binding.*
 
+This project is closed, there is no way to compile to AMD IL. AMD has removed the AMD IL compiler and according to them it only worked for OpenCL Kernels in the first place.
+
 A port of [the experimental reverse-engineered header][4] of the [AMD Mantle][1] library for the D Programming Language.
 Currently only MS Windows is supported, please make sure that you have a suitable GCN AMD/ATI GPU/APU and the mantle32.dll and mantleaxl32.dll (latest catalyst driver) is in your system path.
 An incomplete test project using some mantle functions can be found [here][5]. The windows API, in particular module win32.winuser, is required. Currently the expected Triangle is either not drawn or not displayed, contray to the c/c++ example code.
